@@ -1,0 +1,193 @@
+// Note: Not to be tested to SUB, as the display hasn't been config to signed numbers yet
+// DO NOT USE CMD = 3'b010 other than to debug
+//
+// ON AN DE2-115
+// Input configuration:
+// -----------------------------------------------------------------------------------------
+// For input mode (CMD = 3'b000)
+//
+//  +---------+++++++++++----+---------+------------------------------------------------------+
+//  | 17   16 |/15///14/| 13 | 12   11 | 10    9    8    7    6    5    4    3    2    1    0 |
+//  |   CMD   |// N/A //| CMD|   R0    |                  IMMEDIATE                           |
+//  +---------+++++++++++----+---------+------------------------------------------------------+
+//
+//
+// Operation configuration:
+// -----------------------------------------------------------------------------------------
+// For operation mode (CMD != 3'b000)
+//
+//  +---------+++++++++++----+---------+---------+---------++++++++++++++++++++++++++++++++++++
+//  | 17   16 |/15///14/| 13 | 12   11 | 10    9 |  8    7 |//6////5////4////3////2////1////0/|
+//  |   CMD   |// N/A //| CMD|   R0    |   R1    |   R2    ||/////////////  VOID  ////////////|
+//  +---------+++++++++++----+---------+---------+---------++++++++++++++++++++++++++++++++++++
+//
+//  
+// Function Buttons:
+// -----------------------------------------------------------------------------------------
+//  
+//  ++++++++------+------+------+
+//  |/KEY3/| KEY2 | KEY1 | KEY0 |
+//  | N/A  | CLR  | SAVE | ENTER|
+//  ++++++++------+------+------+
+//
+  
+
+module pc(
+	input  ENTER, CLR, SAVE,
+	input  [1:0]  REGSEL,
+	input  [2:0]  CMD,
+	input  [10:0] IN,
+	output [6:0] SEG0, SEG1, SEG2, SEG3,
+	output ZEROFLAG, NEGFLAG,
+	output reg [17:0] LED
+	);
+	
+	
+	
+	// ---- Display part ---	
+	// BCD register
+	reg  [11:0] BCD_IN;
+	wire [15:0] BCD_OUT;
+	
+	bcd BCD0(
+		.BIN(BCD_IN),
+		.BCD(BCD_OUT)
+	);
+	
+	bcdto7seg D0(
+		.IN(BCD_OUT[3:0]),
+		.OUT(SEG0)
+	);
+	
+		bcdto7seg D1(
+		.IN(BCD_OUT[7:4]),
+		.OUT(SEG1)
+	);
+	
+		bcdto7seg D2(
+		.IN(BCD_OUT[11:8]),
+		.OUT(SEG2)
+	);
+	
+		bcdto7seg D3(
+		.IN(BCD_OUT[15:12]),
+		.OUT(SEG3)
+	);
+	
+	reg [11:0] BCD_IN_I;
+	always@(IN or CMD or REGSEL) begin
+		if (CMD == 3'b000) 
+			BCD_IN_I <= {1'b0,IN};
+		else
+		   BCD_IN_I <= 'b0;
+			
+		LED <= {CMD[2:1],2'b0,CMD[0],REGSEL,IN};
+	end	
+	
+	
+	// --- ALU & Internal Registers ---
+	wire [11:0] RESULT_E;
+	alu ALU0(
+		.A(ALU_A),
+		.B(ALU_B),
+		.CTRL(CMD),
+		.RESULT(RESULT_E),
+		.ZEROFLAG(ZEROFLAG),
+		.NEGATIVEFLAG(NEGFLAG)
+	);
+
+	// Internal Registers
+	reg [11:0] REG0, REG1, REG2, REG3;
+	
+	// ALU Registers
+	reg [11:0] ALU_A, ALU_B;
+	
+	reg [11:0] REG0_E, REG1_E, REG2_E, REG3_E, ALU_A_E, ALU_B_E, BCD_IN_O;
+	always@(negedge ENTER) begin
+		if (CMD == 3'b000) begin	// LOAD mode
+			case (REGSEL)
+				2'b00: REG0_E <= {1'b0,IN};
+				2'b01: REG1_E <= {1'b0,IN};
+				2'b10: REG2_E <= {1'b0,IN};
+				2'b11: REG3_E <= {1'b0,IN};
+				default:;
+			endcase
+			
+		end else begin		// ALU mode
+			// ALU_A input
+			case (IN[10:9])
+				2'b00: ALU_A_E <= REG0;
+				2'b01: ALU_A_E <= REG1;
+				2'b10: ALU_A_E <= REG2;
+				2'b11: ALU_A_E <= REG3;
+				default: ALU_A_E <= 12'b0;
+			endcase
+			
+			// ALU_B input
+			case (IN[8:7])
+				2'b00: ALU_B_E <= REG0;
+				2'b01: ALU_B_E <= REG1;
+				2'b10: ALU_B_E <= REG2;
+				2'b11: ALU_B_E <= REG3;
+				default: ALU_B_E <= 12'b0;
+			endcase
+			
+			case (REGSEL)
+				2'b00: REG0_S <= RESULT;
+				2'b01: REG1_S <= RESULT;
+				2'b10: REG2_S <= RESULT;
+				2'b11: REG3_S <= RESULT;
+			default:;
+		endcase
+		end
+	end
+	
+	// Save value to register
+	reg [11:0] REG0_S, REG1_S, REG2_S, REG3_S, RESULT;
+	
+	
+	always@(CLR or ENTER or SAVE or IN) begin
+		if (CLR == 1'b0) begin
+			REG0 <= 12'b0; REG0_E <= 12'b0; REG0_S <= 12'b0;
+			REG0 <= 12'b0; REG1_E <= 12'b0; REG1_S <= 12'b0;
+			REG0 <= 12'b0; REG2_E <= 12'b0; REG2_S <= 12'b0;
+			REG0 <= 12'b0; REG3_E <= 12'b0; REG3_S <= 12'b0;
+			ALU_A <= 12'b0; ALU_A_E <= 12'b0;
+			ALU_B <= 12'b0; ALU_B_E <= 12'b0; 
+			RESULT <= 12'b0; 
+			BCD_IN_O <= 12'b0;
+			BCD_IN <= 12'b0;
+			
+		end else if (ENTER == 1'b0) begin 
+			REG0 <= REG0_E;
+			REG1 <= REG1_E;
+			REG2 <= REG2_E;
+			REG3 <= REG3_E;
+			ALU_A <= ALU_A_E;
+			ALU_B <= ALU_B_E; 
+			RESULT <= RESULT_E;
+			BCD_IN_O <= RESULT;
+			BCD_IN <= BCD_IN_O;
+			
+		end else if (SAVE == 1'b0) begin
+			case (REGSEL)
+				2'b00: REG0 <= REG0_S;
+				2'b01: REG1 <= REG1_S;
+				2'b10: REG2 <= REG2_S;
+				2'b11: REG3 <= REG3_S;
+			default:;
+			
+		end else begin
+			REG0 <= REG0_E;
+			REG1 <= REG1_E;
+			REG2 <= REG2_E;
+			REG3 <= REG3_E;
+			ALU_A <= ALU_A_E;
+			ALU_B <= ALU_B_E; 
+			RESULT <= RESULT_E;
+			BCD_IN_O <= RESULT;
+			BCD_IN <= BCD_IN_I;
+		end
+	end
+endmodule 
+			

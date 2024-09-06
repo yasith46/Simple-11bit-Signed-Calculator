@@ -1,17 +1,21 @@
 module cla (
-	input  [3:0] A, 
-	input  [3:0] B, 
-	input  CIN,
-	output COUT,
-	output [3:0] SUM
+		input  [3:0] A, 
+		input  [3:0] B, 
+		input  CIN,
+		output COUT,
+		output [3:0] SUM,
+		output [3:0] AND_OUT
 	);
 	
 	
 	wire [3:0] COUT_INT;
 	
+	// P and G
 	wire [3:0] P, G;
 	assign P = A ^ B;
 	assign G = A & B;
+	
+	assign AND_OUT = P;
 	
 	
 	// CLA Logic

@@ -1,16 +1,16 @@
 module alu(
-		input [15:0] A,
-		input [15:0] B,
+		input [11:0] A,
+		input [11:0] B,
 		input [ 2:0] CTRL,
 	
-		output reg [15:0] RESULT,
+		output reg [11:0] RESULT,
 		output ZEROFLAG, NEGATIVEFLAG
 	);
 	
 	
-	wire [15:0] RESULT_AND;
-	wire [15:0] RESULT_OR;
-	wire [15:0] RESULT_SUMSUB;
+	wire [11:0] RESULT_AND;
+	wire [11:0] RESULT_OR;
+	wire [11:0] RESULT_SUMSUB;
 	
 	// Logic of AND and OR
 	assign RESULT_OR = A | B;
@@ -19,11 +19,9 @@ module alu(
 	// Logic for subtraction 
 	reg CIN;
 	wire COUT0,COUT1,COUT2,COUT3;
-	wire [15:0] B_INT;
+	wire [11:0] B_INT;
 		
-	assign B_INT = B ^ {8{CIN}};
-	
-	
+	assign B_INT = B ^ {12{CIN}};
 	
 	// Adders and subtractors	
 	cla cla0 (
@@ -53,43 +51,34 @@ module alu(
 		.AND_OUT( RESULT_AND[11:8] )
 	);
 	
-	cla cla3 (
-		.A( A[15:12] ),
-		.B( B_INT[15:12] ),
-		.CIN( COUT2 ),
-		.COUT( COUT3 ),
-		.SUM( RESULT_SUMSUB[15:12] ),
-		.AND_OUT( RESULT_AND[15:12] )
-	);
-	
 	// Multiplexer
 	always@(*) begin
 		case(CTRL)
-			3'b000:
+			3'b001: // Sum
 				begin 
 					CIN <= 1'b0;
 					RESULT <= RESULT_SUMSUB;
 				end
 				
-			3'b001:
+			3'b010: // Subtract
 				begin
 					CIN <= 1'b1;
 					RESULT <= RESULT_SUMSUB;
 				end
 				
-			3'b010:
+			3'b011: // AND
 				begin
 					CIN <= 1'b0;
 					RESULT <= RESULT_AND;
 				end
 				
-			3'b011:
+			3'b100: // OR
 				begin
 					CIN <= 1'b0;
 					RESULT <= RESULT_OR;
 				end
 				
-			3'b100:
+			3'b101: // Pass through
 				begin
 					CIN <= 1'b0;
 					RESULT <= A;
@@ -104,7 +93,7 @@ module alu(
 	end
 		
 	// zeroflag and negativeflag
-	assign ZEROFLAG     = &RESULT[15:0];
-	assign NEGATIVEFLAG = RESULT[15];
+	assign ZEROFLAG     = &RESULT[11:0];
+	assign NEGATIVEFLAG = RESULT[11];
 	
 endmodule 
