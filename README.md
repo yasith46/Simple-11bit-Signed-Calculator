@@ -38,7 +38,7 @@ For input mode `CMD` <samp>= 3'b000</samp>
   </tr>
   <tr>
     <th colspan=2><samp>CMD<br>[2:1]</samp></th>
-    <th colspan=2><samp>N/A</samp></th>
+    <th colspan=2><samp>-- N/A --</samp></th>
     <th><samp>CMD<br>[0]</samp></th>
     <th colspan=2><samp>R0</samp></th>
     <th colspan=11><samp>IMMEDIATE</samp></th>
@@ -71,12 +71,12 @@ For operation mode `CMD` <samp>!= 3'b000</samp>
   </tr>
   <tr>
     <th colspan=2><samp>CMD<br>[2:1]</samp></th>
-    <th colspan=2><samp>N/A</samp></th>
+    <th colspan=2><samp>-- N/A --</samp></th>
     <th><samp>CMD</samp><br>[0]</th>
     <th colspan=2><samp>R0</samp></th>
     <th colspan=2><samp>R2</samp></th>
     <th colspan=2><samp>R1</samp></th>
-    <th colspan=7;"><samp>VOID</samp></th>
+    <th colspan=7;"><samp>----------- VOID -----------</samp></th>
   </tr>
 </table>
   
