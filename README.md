@@ -1,4 +1,4 @@
-# Simple-PC
+# Simple 11-bit Unsigned Integer Computer
 This project aims to create a 11-bit simple computer. The project was done using _Quartus Prime Lite 20.1.1_
 
 The project consists of following modules (the ticked ones have been completed):
