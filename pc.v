@@ -26,12 +26,12 @@
 // --------------------------------------------------------------------------------------------
 //    OPCODE  CMD     Description                             Status
 // --------------------------------------------------------------------------------------------
-//      000   LOAD    Loads the immediate to the register     -- Works
-//      001   ADD     Addition of R1 and R2                   -- Works
-//      010   SUB     Subtract R2 from R1            
-//      011   AND     Bitwise AND R1 and R2                   -- Works
-//      100   OR      Bitwise OR R1 and R2                    -- Works
-//      101   SHOW    Show register R1                        -- Works
+//      000   Ld      Loads the immediate to the register     -- Works
+//      001   Ad      Addition of R1 and R2                   -- Works
+//      010   Su      Subtract R2 from R1            
+//      011   An      Bitwise AND R1 and R2                   -- Works
+//      100   Or      Bitwise OR R1 and R2                    -- Works
+//      101   Sh      Show register R1                        -- Works
 //
 //  
 // Function Buttons:
