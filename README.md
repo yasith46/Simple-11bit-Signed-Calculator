@@ -8,6 +8,9 @@ The project consists of following modules (the ticked ones have been completed):
 - [x] Binary to BCD converter
 - [x] BCD 7 Segment Display
 
+![WhatsApp Image 2024-09-08 at 23 58 06_81e6a666](https://github.com/user-attachments/assets/4c79b534-707f-4d50-9073-6826c14e7487)
+
+
 > [!NOTE]
 > PS: The readme originally said 32-bit ALU, that was the aim. But I wanted to make it a bit more than that and to be so that I could implement it on the _DE2-115_ board I recently got for this year from the _Department of Electronics and Telecommunications Engineering - University of Moratuwa - Sri Lanka_
 
