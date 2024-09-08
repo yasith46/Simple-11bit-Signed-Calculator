@@ -12,6 +12,9 @@ The project consists of following modules (the ticked ones have been completed):
 > PS: The readme originally said 32-bit ALU, that was the aim. But I wanted to make it a bit more than that and to be so that I could implement it on the _DE2-115_ board I recently got for this year from the _Department of Electronics and Telecommunications Engineering - University of Moratuwa - Sri Lanka_
 
 ## Instructions
+> [!NOTE]
+> PS: Please note that [15:14] of the instruction has been set as N/A only because the switches on my FPGA have developed too much rust and are stuck up there. You are free to use those bits as well (probably you don't have the same issue). I might change the instruction and the length if I come about a workaround for this which does not include meddling with the already existing switches (mind you the FPGA is not mine).
+
 **Input configuration:**<br>
 For input mode `CMD` <samp>= 3'b000</samp>
 
@@ -79,20 +82,58 @@ For operation mode `CMD` <samp>!= 3'b000</samp>
     <th colspan=7;"><samp>----------- VOID -----------</samp></th>
   </tr>
 </table>
-  
-**Function Buttons:**
- 
-<table style="border-collapse: collapse; width: 100%;">
+
+**Commands**
+<table>
   <tr>
-    <th>3</th>
-    <th>2</th>
-    <th>1</th>
-    <th>0</th>
+    <th>OPCODE</th>
+    <th>CMD</th>
+    <th>Description</th>
+    <th>Status</th>
   </tr>
   <tr>
-    <th><samp>N/A</samp></th>
-    <th><samp>CLR</samp></th>
-    <th><samp>STR</samp></th>
-    <th><samp>ENT</samp></th>
+    <td><code>000</code></td>
+    <td><code>LOAD</code></td>
+    <td>Loads the immediate to R0</td>
+    <td> ✅ Works</td>
+  </tr>
+  
+  <tr>
+    <td><code>001</code></td>
+    <td><code>ADD</code></td>
+    <td>Add R1 and R2, save to R0</td>
+    <td> ✅ Works</td>
+  </tr>
+  
+  <tr>
+    <td><code>010</code></td>
+    <td><code>SUB</code></td>
+    <td>Substracts R2 from R1, saves to R0</td>
+    <td> ⚠️ Works, but display not fixed (#2)</td>
+  </tr>
+  
+  <tr>
+    <td><code>011</code></td>
+    <td><code>AND</code></td>
+    <td>Bitwise AND between R2 from R1, saves to R0</td>
+    <td> ✅ Works</td>
+  </tr>
+  
+  <tr>
+    <td><code>100</code></td>
+    <td><code>OR</code></td>
+    <td>Bitwise OR between R2 from R1, saves to R0</td>
+    <td> ✅ Works</td>
+  </tr>
+  
+  <tr>
+    <td><code>101</code></td>
+    <td><code>SHOW</code></td>
+    <td>Displays the number at R0 (for debugging purposes)</td>
+    <td> ✅ Works</td>
   </tr>
 </table>
+  
+**Function Buttons:**<br>
+KEY0: `ENTER` <br>
+KEY1: `CLR` (Temporarily deleted)
