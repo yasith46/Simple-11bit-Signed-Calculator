@@ -94,6 +94,6 @@ module alu(
 		
 	// zeroflag and negativeflag
 	assign ZEROFLAG     = &RESULT[11:0];
-	assign NEGATIVEFLAG = RESULT[11];
+	assign NEGATIVEFLAG = RESULT[10];	// As this is a 11 bit computer
 	
 endmodule 

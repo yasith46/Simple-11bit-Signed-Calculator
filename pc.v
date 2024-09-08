@@ -26,12 +26,12 @@
 // --------------------------------------------------------------------------------------------
 //    OPCODE  CMD     Description                             Status
 // --------------------------------------------------------------------------------------------
-//      000   Ld      Loads the immediate to the register     -- Works
-//      001   Ad      Addition of R1 and R2                   -- Works
-//      010   Su      Subtract R2 from R1            
-//      011   An      Bitwise AND R1 and R2                   -- Works
-//      100   Or      Bitwise OR R1 and R2                    -- Works
-//      101   Sh      Show register R1                        -- Works
+//      000   LOAD    Loads the immediate to the register     -- Works
+//      001   ADD     Addition of R1 and R2                   -- Works
+//      010   SUB     Subtract R2 from R1            
+//      011   AND     Bitwise AND R1 and R2                   -- Works
+//      100   OR      Bitwise OR R1 and R2                    -- Works
+//      101   SHOW    Show register R1                        -- Works
 //
 //  
 // Function Buttons:
@@ -46,8 +46,10 @@ module pc(
 	input  [1:0]  REGSEL,
 	input  [2:0]  CMD,
 	input  [10:0] IN,
-	output [6:0] SEG0, SEG1, SEG2, SEG3, SEG5, SEG6, SEG7,
-	output ZEROFLAG, NEGFLAG, ENTERLED,
+	output [6:0] SEG0, SEG1, SEG2, SEG3, SEG6, SEG7,
+	output NEGSEG,
+	output ZEROFLAG, ENTERLED,
+	output reg SHOWNEGFLAG,
 	output reg [17:0] LED
 	);
 	
@@ -55,7 +57,7 @@ module pc(
 	
 	// ---- Display part ---	
 	// BCD register
-	reg  [11:0] BCD_IN;
+	reg  [10:0] BCD_IN;
 	wire [15:0] BCD_OUT;
 	
 	bcd BCD0(
@@ -63,6 +65,7 @@ module pc(
 		.BCD(BCD_OUT)
 	);
 	
+	// 7Segment Displays
 	bcdto7seg D0(
 		.IN(BCD_OUT[3:0]),
 		.OUT(SEG0)
@@ -88,18 +91,25 @@ module pc(
 		.OUT({SEG7,SEG6})
 	);
 	
-	reg [11:0] BCD_IN_I;
+	reg [10:0] BCD_IN_I;
+	reg SHOWNEGFLAG_INT;
+	
 	always@(IN or CMD or REGSEL) begin
-		if (CMD == 3'b000) 
-			BCD_IN_I <= {1'b0,IN};
-		else
-		   BCD_IN_I <= 'b0;
-			
+		if (CMD == 3'b000) begin
+			BCD_IN_I <= IN;
+			SHOWNEGFLAG_INT <= IN[10];
+		end else begin
+		   BCD_IN_I <= 11'b0;
+			SHOWNEGFLAG_INT <= 1'b0;
+		end
+		
+		// LED Displaying the slide switches' input	
 		LED <= {CMD[2:1],2'b0,CMD[0],REGSEL,IN};
 	end
 
-	assign ENTERLED = ENTER;	
-	assign SEG5 = (NEGFLAG == 1'b1) ? 7'b0111111 : 7'b1111111;
+	assign ENTERLED = ~ENTER;		// LED for ENTER
+	assign NEGSEG = ~SHOWNEGFLAG;	// Neagtive mark
+	wire NEGFLAG;
 	
 	// --- ALU & Internal Registers ---
 	wire [11:0] RESULT_E;
@@ -118,9 +128,9 @@ module pc(
 	// ALU Registers
 	reg [11:0] ALU_A, ALU_B;
 	
-	reg [11:0] REG0_E, REG1_E, REG2_E, REG3_E, ALU_A_E, ALU_B_E, BCD_IN_O;
+	reg [11:0] REG0_E, REG1_E, REG2_E, REG3_E, ALU_A_E, ALU_B_E;
 	always@(negedge ENTER) begin
-		if (CMD == 3'b000) begin	// LOAD mode
+		if (CMD == 3'b000) begin					// CMD: Ld
 			case (REGSEL)
 				2'b00  : REG0_E  <= {1'b0,IN};
 				2'b01  : REG1_E  <= {1'b0,IN};
@@ -129,7 +139,7 @@ module pc(
 				default:;
 			endcase
 			
-		end else if (CMD == 3'b101) begin		// ALU mode
+		end else if (CMD == 3'b101) begin		// CMD: Sh
 			case (REGSEL)
 				2'b00  : ALU_A_E  <= REG0;
 				2'b01  : ALU_A_E  <= REG1;
@@ -138,7 +148,7 @@ module pc(
 				default:;
 			endcase
 			
-		end else begin
+		end else begin									// CMD: Other operations
 			// ALU_A input
 			case (IN[10:9])
 				2'b00  : ALU_A_E <= REG0;
@@ -168,11 +178,10 @@ module pc(
 	end
 	
 	// Save value to register
-	reg [11:0] REG0_S, REG1_S, REG2_S, REG3_S, RESULT;
-	
+	reg [11:0] RESULT;
 	
 	always@(posedge CLK) begin	
-		if (ENTER == 1'b0) begin 
+		if (ENTER == 1'b0) begin 	// When ENTERed
 			REG0 <= REG0_E;
 			REG1 <= REG1_E;
 			REG2 <= REG2_E;
@@ -180,10 +189,10 @@ module pc(
 			ALU_A <= ALU_A_E;
 			ALU_B <= ALU_B_E; 
 			RESULT <= RESULT_E;
-			BCD_IN_O <= RESULT;
-			BCD_IN <= BCD_IN_O;
+			BCD_IN <= RESULT[10:0];
+			SHOWNEGFLAG <= NEGFLAG;
 			
-		end else begin
+		end else begin					// Default
 			REG0 <= REG0_E;
 			REG1 <= REG1_E;
 			REG2 <= REG2_E;
@@ -191,8 +200,8 @@ module pc(
 			ALU_A <= ALU_A_E;
 			ALU_B <= ALU_B_E; 
 			RESULT <= RESULT_E;
-			BCD_IN_O <= RESULT;
 			BCD_IN <= BCD_IN_I;
+			SHOWNEGFLAG <= SHOWNEGFLAG_INT;
 		end
 	end
 endmodule 
