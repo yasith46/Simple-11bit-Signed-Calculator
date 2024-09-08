@@ -93,42 +93,42 @@ For operation mode `CMD` <samp>!= 3'b000</samp>
   </tr>
   <tr>
     <td><code>000</code></td>
-    <td><code>LOAD</code></td>
+    <td><code>Ld</code></td>
     <td>Loads the immediate to R0</td>
     <td> ✅ Works</td>
   </tr>
   
   <tr>
     <td><code>001</code></td>
-    <td><code>ADD</code></td>
+    <td><code>Ad</code></td>
     <td>Add R1 and R2, save to R0</td>
     <td> ✅ Works</td>
   </tr>
   
   <tr>
     <td><code>010</code></td>
-    <td><code>SUB</code></td>
+    <td><code>Su</code></td>
     <td>Substracts R2 from R1, saves to R0</td>
     <td> ⚠️ Works, but display not fixed (#2)</td>
   </tr>
   
   <tr>
     <td><code>011</code></td>
-    <td><code>AND</code></td>
+    <td><code>An</code></td>
     <td>Bitwise AND between R2 from R1, saves to R0</td>
     <td> ✅ Works</td>
   </tr>
   
   <tr>
     <td><code>100</code></td>
-    <td><code>OR</code></td>
+    <td><code>Or</code></td>
     <td>Bitwise OR between R2 from R1, saves to R0</td>
     <td> ✅ Works</td>
   </tr>
   
   <tr>
     <td><code>101</code></td>
-    <td><code>SHOW</code></td>
+    <td><code>Sh</code></td>
     <td>Displays the number at R0 (for debugging purposes)</td>
     <td> ✅ Works</td>
   </tr>
