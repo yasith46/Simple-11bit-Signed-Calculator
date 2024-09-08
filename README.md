@@ -1,5 +1,5 @@
 # Simple-PC
-This project aims to create a 12-bit simple computer. The project was done using _Quartus Prime Lite 20.1.1_
+This project aims to create a 11-bit simple computer. The project was done using _Quartus Prime Lite 20.1.1_
 
 The project consists of following modules (the ticked ones have been completed):
 - [x] CLA - 4-bit Carry Look Ahead adder
@@ -109,7 +109,7 @@ For operation mode `CMD` <samp>!= 3'b000</samp>
     <td><code>010</code></td>
     <td><code>Su</code></td>
     <td>Substracts R2 from R1, saves to R0</td>
-    <td> ⚠️ Works, but display not fixed (#2)</td>
+    <td> ✅ Works</td>
   </tr>
   
   <tr>
