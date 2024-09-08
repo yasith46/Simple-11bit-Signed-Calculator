@@ -3,7 +3,7 @@
 //
 // ON AN DE2-115
 // Input configuration:
-// -----------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 // For input mode (CMD = 3'b000)
 //
 //  +---------+++++++++++----+---------+------------------------------------------------------+
@@ -13,7 +13,7 @@
 //
 //
 // Operation configuration:
-// -----------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 // For operation mode (CMD != 3'b000)
 //
 //  +---------+++++++++++----+---------+---------+---------++++++++++++++++++++++++++++++++++++
@@ -21,19 +21,28 @@
 //  |   CMD   |// N/A //| CMD|   R0    |   R1    |   R2    ||/////////////  VOID  ////////////|
 //  +---------+++++++++++----+---------+---------+---------++++++++++++++++++++++++++++++++++++
 //
+//
+// Commands:
+// --------------------------------------------------------------------------------------------
+//    OPCODE  CMD     Description                             Status
+// --------------------------------------------------------------------------------------------
+//      000   LOAD    Loads the immediate to the register     -- Works
+//      001   ADD     Addition of R1 and R2                   -- Works
+//      010   SUB     Subtract R2 from R1            
+//      011   AND     Bitwise AND R1 and R2                   -- Works
+//      100   OR      Bitwise OR R1 and R2                    -- Works
+//      101   SHOW    Show register R1                        -- Works
+//
 //  
 // Function Buttons:
-// -----------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 //  
-//  ++++++++------+------+------+
-//  |/KEY3/| KEY2 | KEY1 | KEY0 |
-//  | N/A  | CLR  | SAVE | ENTER|
-//  ++++++++------+------+------+
-//
+//      KEY0  ENTER                                           -- Display doesn't stay (#1)
+//      KEY2  CLR                                             -- Doesn't clear (#3) 
   
 
 module pc(
-	input  ENTER, CLR, SAVE,
+	input  ENTER, CLR, CLK,
 	input  [1:0]  REGSEL,
 	input  [2:0]  CMD,
 	input  [10:0] IN,
@@ -106,39 +115,48 @@ module pc(
 	always@(negedge ENTER) begin
 		if (CMD == 3'b000) begin	// LOAD mode
 			case (REGSEL)
-				2'b00: REG0_E <= {1'b0,IN};
-				2'b01: REG1_E <= {1'b0,IN};
-				2'b10: REG2_E <= {1'b0,IN};
-				2'b11: REG3_E <= {1'b0,IN};
+				2'b00  : REG0_E  <= {1'b0,IN};
+				2'b01  : REG1_E  <= {1'b0,IN};
+				2'b10  : REG2_E  <= {1'b0,IN};
+				2'b11  : REG3_E  <= {1'b0,IN};
 				default:;
 			endcase
 			
-		end else begin		// ALU mode
+		end else if (CMD == 3'b101) begin		// ALU mode
+			case (REGSEL)
+				2'b00  : ALU_A_E  <= REG0;
+				2'b01  : ALU_A_E  <= REG1;
+				2'b10  : ALU_A_E  <= REG2;
+				2'b11  : ALU_A_E  <= REG3;
+				default:;
+			endcase
+			
+		end else begin
 			// ALU_A input
 			case (IN[10:9])
-				2'b00: ALU_A_E <= REG0;
-				2'b01: ALU_A_E <= REG1;
-				2'b10: ALU_A_E <= REG2;
-				2'b11: ALU_A_E <= REG3;
+				2'b00  : ALU_A_E <= REG0;
+				2'b01  : ALU_A_E <= REG1;
+				2'b10  : ALU_A_E <= REG2;
+				2'b11  : ALU_A_E <= REG3;
 				default: ALU_A_E <= 12'b0;
 			endcase
 			
 			// ALU_B input
 			case (IN[8:7])
-				2'b00: ALU_B_E <= REG0;
-				2'b01: ALU_B_E <= REG1;
-				2'b10: ALU_B_E <= REG2;
-				2'b11: ALU_B_E <= REG3;
+				2'b00  : ALU_B_E <= REG0;
+				2'b01  : ALU_B_E <= REG1;
+				2'b10  : ALU_B_E <= REG2;
+				2'b11  : ALU_B_E <= REG3;
 				default: ALU_B_E <= 12'b0;
 			endcase
 			
 			case (REGSEL)
-				2'b00: REG0_S <= RESULT;
-				2'b01: REG1_S <= RESULT;
-				2'b10: REG2_S <= RESULT;
-				2'b11: REG3_S <= RESULT;
-			default:;
-		endcase
+				2'b00  : REG0_E  <= RESULT;
+				2'b01  : REG1_E  <= RESULT;
+				2'b10  : REG2_E  <= RESULT;
+				2'b11  : REG3_E  <= RESULT;
+				default:;
+			endcase
 		end
 	end
 	
@@ -146,19 +164,8 @@ module pc(
 	reg [11:0] REG0_S, REG1_S, REG2_S, REG3_S, RESULT;
 	
 	
-	always@(CLR or ENTER or SAVE or IN) begin
-		if (CLR == 1'b0) begin
-			REG0 <= 12'b0; REG0_E <= 12'b0; REG0_S <= 12'b0;
-			REG0 <= 12'b0; REG1_E <= 12'b0; REG1_S <= 12'b0;
-			REG0 <= 12'b0; REG2_E <= 12'b0; REG2_S <= 12'b0;
-			REG0 <= 12'b0; REG3_E <= 12'b0; REG3_S <= 12'b0;
-			ALU_A <= 12'b0; ALU_A_E <= 12'b0;
-			ALU_B <= 12'b0; ALU_B_E <= 12'b0; 
-			RESULT <= 12'b0; 
-			BCD_IN_O <= 12'b0;
-			BCD_IN <= 12'b0;
-			
-		end else if (ENTER == 1'b0) begin 
+	always@(posedge CLK) begin	
+		if (ENTER == 1'b0) begin 
 			REG0 <= REG0_E;
 			REG1 <= REG1_E;
 			REG2 <= REG2_E;
@@ -168,14 +175,6 @@ module pc(
 			RESULT <= RESULT_E;
 			BCD_IN_O <= RESULT;
 			BCD_IN <= BCD_IN_O;
-			
-		end else if (SAVE == 1'b0) begin
-			case (REGSEL)
-				2'b00: REG0 <= REG0_S;
-				2'b01: REG1 <= REG1_S;
-				2'b10: REG2 <= REG2_S;
-				2'b11: REG3 <= REG3_S;
-			default:;
 			
 		end else begin
 			REG0 <= REG0_E;

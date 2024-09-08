@@ -15,7 +15,7 @@ module cla (
 	assign P = A ^ B;
 	assign G = A & B;
 	
-	assign AND_OUT = P;
+	assign AND_OUT = G;
 	
 	
 	// CLA Logic
