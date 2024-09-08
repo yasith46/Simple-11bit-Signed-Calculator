@@ -46,8 +46,8 @@ module pc(
 	input  [1:0]  REGSEL,
 	input  [2:0]  CMD,
 	input  [10:0] IN,
-	output [6:0] SEG0, SEG1, SEG2, SEG3,
-	output ZEROFLAG, NEGFLAG,
+	output [6:0] SEG0, SEG1, SEG2, SEG3, SEG5, SEG6, SEG7,
+	output ZEROFLAG, NEGFLAG, ENTERLED,
 	output reg [17:0] LED
 	);
 	
@@ -68,19 +68,24 @@ module pc(
 		.OUT(SEG0)
 	);
 	
-		bcdto7seg D1(
+	bcdto7seg D1(
 		.IN(BCD_OUT[7:4]),
 		.OUT(SEG1)
 	);
 	
-		bcdto7seg D2(
+	bcdto7seg D2(
 		.IN(BCD_OUT[11:8]),
 		.OUT(SEG2)
 	);
 	
-		bcdto7seg D3(
+	bcdto7seg D3(
 		.IN(BCD_OUT[15:12]),
 		.OUT(SEG3)
+	);
+	
+	cmdto7seg DC(
+		.CMD(CMD),
+		.OUT({SEG7,SEG6})
 	);
 	
 	reg [11:0] BCD_IN_I;
@@ -91,8 +96,10 @@ module pc(
 		   BCD_IN_I <= 'b0;
 			
 		LED <= {CMD[2:1],2'b0,CMD[0],REGSEL,IN};
-	end	
-	
+	end
+
+	assign ENTERLED = ENTER;	
+	assign SEG5 = (NEGFLAG == 1'b1) ? 7'b0111111 : 7'b1111111;
 	
 	// --- ALU & Internal Registers ---
 	wire [11:0] RESULT_E;
